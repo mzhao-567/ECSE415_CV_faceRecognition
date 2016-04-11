@@ -17,6 +17,7 @@ void loadHeadPose(vector<vector<vector<Mat>>> &headPoseImages, String headPoseAd
 Point readFilebyLine(String path);
 
 void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<vector<vector<Mat>>> &imageDescriptors, const int numCodewords);
+void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors);
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex);
 
 void main() {
@@ -69,14 +70,19 @@ void main() {
 	/***********Bags of Words***********/
 
 	/* Set the number of codewords*/
-	const int numCodewords = 25;
+	const int numCodewords = 20;
 
 	/* Variable definition */
 	Mat codeBook;
 	vector<vector<vector<Mat>>> imageDescriptors;
 
+
+
 	/* Training */
 	Train(QMULImages, codeBook, imageDescriptors, numCodewords);
+	
+	/* Testing */
+	Test(QMULImages, codeBook, imageDescriptors);
 
 	cin.ignore();
 }
@@ -167,7 +173,7 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 	Mat D;
 
 	// detect SIFT key points for each training image of each object category
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < QMULImages.size(); i++) {
 		for (int j = 0; j < QMULImages[i].size(); j++) {
 			for (int k = 0; k < QMULImages[i][j].size(); k++) {
 
@@ -182,7 +188,7 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 			}
 		}
 		// Person completion notice
-		cout << "Person " << (i+1) << " of " << QMULImages.size() << " completed\n";
+		cout << "Person " << (i+1) << " of " << QMULImages.size() << " completed" << endl;
 	}
 
 	BOWKMeansTrainer bowTrainer(numCodewords);
@@ -206,6 +212,9 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 				Mat histogram_pan;
 				bowDescriptorExtractor->compute2(img, keypoints, histogram_pan);
 				
+				// Normalize BoW histogram
+				normalize(histogram_pan, histogram_pan, 0, 1, NORM_MINMAX, -1, Mat());
+				
 				histogram_tilt.push_back(histogram_pan);		
 			}
 			histogram_person.push_back(histogram_tilt);
@@ -213,7 +222,7 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 		imageDescriptors.push_back(histogram_person);
 
 		// Person completion notice
-		cout << "BoW " << i << " completed\n";
+		cout << "BoW " << (i+1) << " completed" << endl;
 	}
 
 	// End of function
@@ -221,7 +230,6 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 }
 
 void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors) {
-	cout << "Testing" << endl;
 
 	Ptr<FeatureDetector> featureDetector = FeatureDetector::create("SIFT");
 	Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
@@ -234,6 +242,8 @@ void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, con
 
 	int matches = 0;
 
+	cout << "Testing" << endl;
+
 	for (int i = 0; i < QMULImages.size(); i++) {
 		for (int j = 0; j < QMULImages[i].size(); j++) {
 			for (int k = 0; k < QMULImages[i][j].size(); k++) {
@@ -241,21 +251,24 @@ void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, con
 				Mat img = QMULImages[i][j][j];
 				featureDetector->detect(img, keypoints);
 				
-				Mat descriptor;
-				bowDescriptorExtractor->compute2(img, keypoints, descriptor);
+				Mat histogram;
+				bowDescriptorExtractor->compute2(img, keypoints, histogram);
+
+				// Normalize BoW histogram
+				normalize(histogram, histogram, 0, 1, NORM_MINMAX, -1, Mat());
 
 				double minDist = INFINITY;
-				int bestMatch = 0;
-
+				int bestMatch = -1;
 				for (int l = 0; l < imageDescriptors.size(); l++) {
 					for (int m = 0; m < imageDescriptors[l].size(); m++) {
 						for (int n = 0; n < imageDescriptors[l][m].size(); n++) {
 							
-							double dist = norm(imageDescriptors[l][m][n], descriptor);
+							double dist = compareHist(imageDescriptors[l][m][n], histogram, CV_COMP_CHISQR);
+							// double dist = norm(imageDescriptors[l][m][n], histogram);
 
 							if (dist < minDist) {
 								minDist = dist;
-								bestMatch = k;
+								bestMatch = l;
 							}							
 						}
 					}
@@ -263,17 +276,22 @@ void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, con
 
 				if (bestMatch == i) {
 					matches++;
-					cout << "match\n";
+					// cout << matches << " match(es) found" << endl;
 				}
 			}
 		}
+
+		// Person completion notice
+		cout << "Person " << (i + 1) << " of " << QMULImages.size() << " tested" << endl;
 	}
 
 	// ratio = matches/numTrainingData
-	double ratio = (double)matches / 40.0;
+	double ratio = (double)matches / (133*31);
 
-	cout << "Recognition ratio: " << ratio << "\n";
+	cout << "Recognition success ratio: " << ratio << endl;
 
+	// End of function
+	cout << "Testing complete" << endl;
 }
 
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex) {
