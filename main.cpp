@@ -41,7 +41,7 @@ int main(void) {
     
     QMULSubject = {"AdamB", "AndreeaV","CarlaB","ColinP","DanJ",
         "DennisP","DennisPNoGlasses","DerekC","GrahamW","HeatherL","Jack","JamieS",
-        "JeffN","John","Jon","KateS","KatherineW","KeithC","KrystynaN","PaulV",
+        "JeffNG","John","OngEJ","KateS","KatherineW","KeithC","KrystynaN","PaulV",
         "RichardB","RichardH","SarahL","SeanG","SeanGNoGlasses","SimonB","SueW",
         "TasosH","TomK","YogeshR","YongminY"};
     
