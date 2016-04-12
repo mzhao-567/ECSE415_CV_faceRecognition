@@ -21,13 +21,15 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 double Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors);
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex);
 
+// Initialize constants
+const int numCodewords = 20;
+const String QMULAddress = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/QMUL/";
+const String headPosePath = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/HeadPoseImageDatabase/";
+
 void main() {
 
 	/* Initialize OpenCV nonfree module */
 	initModule_nonfree();
-
-	String QMULAddress = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/QMUL/";
-	String headPosePath = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/HeadPoseImageDatabase/";
 
 	vector<String> QMULNames;
 	QMULNames = { "AdamBGrey", "AndreeaVGrey", "CarlaBGrey", "ColinPGrey", "DanJGrey",
@@ -147,7 +149,7 @@ Point readFilebyLine(String path){
 
 
 void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
-	cout << "K-Fold Cross Validation" << endl;
+	cout << "K-Fold Cross Validation with " << numCodewords << " code words" << endl;
 
 	// Vectors of size 7 containing training data and testing data for each k
 	vector<vector<vector<vector<Mat>>>> trainingData;
@@ -163,11 +165,12 @@ void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
 
 					Mat img = QMULImages[i][j][k];
 
-					if (j != f) {
+					// int index = 19*j + k;
+
+					if (j == f) {
+						te_pan.push_back(img); 
+					} else {
 						tr_pan.push_back(img);
-					}
-					else {
-						te_pan.push_back(img);
 					}
 				}
 				if (tr_pan.size() != 0) { tr_tilt.push_back(tr_pan); }
@@ -180,13 +183,12 @@ void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
 		testingData.push_back(te_person);
 	}
 
-	int tr = trainingData[0][0].size() * trainingData[0][0][0].size();
-	int te = testingData[0][0].size() * testingData[0][0][0].size();
-	cout << trainingData[0].size() << " people in dataset, with " << tr << " images in training per person" << endl;
-	cout << testingData[0].size() << " people in dataset, with " << te << " images in testing per person" << endl;
-
-	/* Set the number of codewords*/
-	const int numCodewords = 10;
+	int tr1 = trainingData[0][0].size();
+	int tr2 = trainingData[0][0][0].size();
+	int te1 = testingData[0][0].size();
+	int te2 = testingData[0][0][0].size();
+	cout << trainingData[0].size() << " people in dataset, with " << tr1 << " x "  << tr2 << " images in training per person" << endl;
+	cout << testingData[0].size()  << " people in dataset, with " << te1 << " x "  << te2 << " images in testing per person"  << endl;
 
 	double res = 0;
 
