@@ -16,8 +16,9 @@ void loadHeadPose(vector<vector<vector<Mat>>> &headPoseImages, String headPoseAd
 	vector<String>headPoseTilt, vector<String>headPosePan, vector<vector<vector<Point>>> &headPoseAnnotation);
 Point readFilebyLine(String path);
 
+void kFold(const vector<vector<vector<Mat>>> &QMULImages);
 void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<vector<vector<Mat>>> &imageDescriptors, const int numCodewords);
-void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors);
+double Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors);
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex);
 
 void main() {
@@ -29,7 +30,6 @@ void main() {
 	String headPosePath = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/HeadPoseImageDatabase/";
 
 	vector<String> QMULNames;
-
 	QMULNames = { "AdamBGrey", "AndreeaVGrey", "CarlaBGrey", "ColinPGrey", "DanJGrey",
 		"DennisPGrey", "DennisPNoGlassesGrey", "DerekCGrey", "GrahamWGrey", "HeatherLGrey", "JackGrey", "JamieSGrey",
 		"JeffNGrey", "JohnGrey", "JonGrey", "KateSGrey", "KatherineWGrey", "KeithCGrey", "KrystynaNGrey", "PaulVGrey",
@@ -37,24 +37,20 @@ void main() {
 		"TasosHGrey", "TomKGrey", "YogeshRGrey", "YongminYGrey" };
 
 	vector<String> QMULSubject;
-
 	QMULSubject = { "AdamB", "AndreeaV", "CarlaB", "ColinP", "DanJ",
 		"DennisP", "DennisPNoGlasses", "DerekC", "GrahamW", "HeatherL", "Jack", "JamieS",
-		"JeffN", "John", "Jon", "KateS", "KatherineW", "KeithC", "KrystynaN", "PaulV",
+		"JeffNG", "John", "OngEJ", "KateS", "KatherineW", "KeithC", "KrystynaN", "PaulV",
 		"RichardB", "RichardH", "SarahL", "SeanG", "SeanGNoGlasses", "SimonB", "SueW",
 		"TasosH", "TomK", "YogeshR", "YongminY" };
 
 	vector<String> QMULTilt;
-
 	QMULTilt = { "060", "070", "080", "090", "100", "110", "120" };
 
 	vector<String> QMULPan;
-
-	QMULPan = { "000", "010", "020", "030", "040", "050", "060", "070", "080", "090", "100",
-		"110", "120", "130", "140", "150", "160", "170", "180" };
+	QMULPan = { "000", "010", "020", "030", "040", "050", "060", "070", "080", "090", 
+				"100", "110", "120", "130", "140", "150", "160", "170", "180" };
 
 	vector<vector<vector<Mat>>> QMULImages;
-
 	loadQMUL(QMULImages, QMULAddress, QMULNames, QMULSubject, QMULTilt, QMULPan);
 
 	vector<vector<vector<Mat>>> headPoseImages;
@@ -66,23 +62,9 @@ void main() {
 
 	//loadHeadPose(headPoseImages, headPosePath, headPoseId, headPoseTilt, headPosePan, headPoseAnnotation);
 
-
 	/***********Bags of Words***********/
 
-	/* Set the number of codewords*/
-	const int numCodewords = 20;
-
-	/* Variable definition */
-	Mat codeBook;
-	vector<vector<vector<Mat>>> imageDescriptors;
-
-
-
-	/* Training */
-	Train(QMULImages, codeBook, imageDescriptors, numCodewords);
-	
-	/* Testing */
-	Test(QMULImages, codeBook, imageDescriptors);
+	kFold(QMULImages);
 
 	cin.ignore();
 }
@@ -164,6 +146,67 @@ Point readFilebyLine(String path){
 }
 
 
+void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
+	cout << "K-Fold Cross Validation" << endl;
+
+	// Vectors of size 7 containing training data and testing data for each k
+	vector<vector<vector<vector<Mat>>>> trainingData;
+	vector<vector<vector<vector<Mat>>>> testingData;
+
+	for (int f = 0; f < 7; f++) {
+		vector<vector<vector<Mat>>> tr_person, te_person;
+		for (int i = 0; i < QMULImages.size(); i++) {
+			vector<vector<Mat>> tr_tilt, te_tilt;
+			for (int j = 0; j < QMULImages[i].size(); j++) {
+				vector<Mat> tr_pan, te_pan;
+				for (int k = 0; k < QMULImages[i][j].size(); k++) {
+
+					Mat img = QMULImages[i][j][k];
+
+					if (j != f) {
+						tr_pan.push_back(img);
+					}
+					else {
+						te_pan.push_back(img);
+					}
+				}
+				if (tr_pan.size() != 0) { tr_tilt.push_back(tr_pan); }
+				if (te_pan.size() != 0) { te_tilt.push_back(te_pan); }
+			}
+			te_person.push_back(te_tilt);
+			tr_person.push_back(tr_tilt);
+		}
+		trainingData.push_back(tr_person);
+		testingData.push_back(te_person);
+	}
+
+	int tr = trainingData[0][0].size() * trainingData[0][0][0].size();
+	int te = testingData[0][0].size() * testingData[0][0][0].size();
+	cout << trainingData[0].size() << " people in dataset, with " << tr << " images in training per person" << endl;
+	cout << testingData[0].size() << " people in dataset, with " << te << " images in testing per person" << endl;
+
+	/* Set the number of codewords*/
+	const int numCodewords = 10;
+
+	double res = 0;
+
+	for (int k = 0; k < 7; k++) {
+		Mat codeBook;
+		vector<vector<vector<Mat>>> imageDescriptors;
+
+		Train(trainingData[k], codeBook, imageDescriptors, numCodewords);
+		res = res + Test(testingData[k], codeBook, imageDescriptors);
+
+		cout << "fold " << (k+1) << " completed;" << endl;
+	}
+	
+	res = res / 7.0;
+
+	cout << "Averaged result = " << res << endl;
+
+	cout << "K-Fold Cross Validation Complete" << endl;
+}
+
 void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<vector<vector<Mat>>> &imageDescriptors, const int numCodewords) {
 	cout << "Training" << endl;
 
@@ -201,7 +244,7 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 
 	// Extract image descriptor from each image
 	for (int i = 0; i < QMULImages.size(); i++) {
-		vector<vector<Mat>> histogram_person;
+		vector<vector<Mat>> histogram_face;
 		for (int j = 0; j < QMULImages[i].size(); j++) {
 			vector<Mat> histogram_tilt;
 			for (int k = 0; k < QMULImages[i][j].size(); k++) {
@@ -217,9 +260,9 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 				
 				histogram_tilt.push_back(histogram_pan);		
 			}
-			histogram_person.push_back(histogram_tilt);
+			histogram_face.push_back(histogram_tilt);
 		}
-		imageDescriptors.push_back(histogram_person);
+		imageDescriptors.push_back(histogram_face);
 
 		// Person completion notice
 		cout << "BoW " << (i+1) << " completed" << endl;
@@ -229,7 +272,7 @@ void Train(const vector<vector<vector<Mat>>> &QMULImages, Mat &codeBook, vector<
 	cout << "Training complete" << endl;
 }
 
-void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors) {
+double Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, const vector<vector<vector<Mat>>> imageDescriptors) {
 
 	Ptr<FeatureDetector> featureDetector = FeatureDetector::create("SIFT");
 	Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
@@ -248,7 +291,7 @@ void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, con
 		for (int j = 0; j < QMULImages[i].size(); j++) {
 			for (int k = 0; k < QMULImages[i][j].size(); k++) {
 				
-				Mat img = QMULImages[i][j][j];
+				Mat img = QMULImages[i][j][k];
 				featureDetector->detect(img, keypoints);
 				
 				Mat histogram;
@@ -263,6 +306,9 @@ void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, con
 					for (int m = 0; m < imageDescriptors[l].size(); m++) {
 						for (int n = 0; n < imageDescriptors[l][m].size(); n++) {
 							
+							// cout << "image descripter[l][m][n] = \n" << imageDescriptors[l][m][n] << endl;
+							// cout << "computed histogram = \n" << histogram << endl;
+
 							double dist = compareHist(imageDescriptors[l][m][n], histogram, CV_COMP_CHISQR);
 							// double dist = norm(imageDescriptors[l][m][n], histogram);
 
@@ -286,9 +332,10 @@ void Test(const vector<vector<vector<Mat>>> &QMULImages, const Mat codeBook, con
 	}
 
 	// ratio = matches/numTrainingData
-	double ratio = (double)matches / (133*31);
+	double ratio = (double)matches / (589.0);
 
 	cout << "Recognition success ratio: " << ratio << endl;
+	return ratio;
 
 	// End of function
 	cout << "Testing complete" << endl;
