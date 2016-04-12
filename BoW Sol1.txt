@@ -1,0 +1,691 @@
+K-Fold Cross Validation with 10 codewords
+31 people in dataset, with 114 images in training per person
+31 people in dataset, with 19 images in testing per person
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0237691
+0 completed;
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0152801
+1 completed;
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0118846
+2 completed;
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0254669
+3 completed;
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0220713
+4 completed;
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0152801
+5 completed;
+Training
+Person 1 of 31 completed
+Person 2 of 31 completed
+Person 3 of 31 completed
+Person 4 of 31 completed
+Person 5 of 31 completed
+Person 6 of 31 completed
+Person 7 of 31 completed
+Person 8 of 31 completed
+Person 9 of 31 completed
+Person 10 of 31 completed
+Person 11 of 31 completed
+Person 12 of 31 completed
+Person 13 of 31 completed
+Person 14 of 31 completed
+Person 15 of 31 completed
+Person 16 of 31 completed
+Person 17 of 31 completed
+Person 18 of 31 completed
+Person 19 of 31 completed
+Person 20 of 31 completed
+Person 21 of 31 completed
+Person 22 of 31 completed
+Person 23 of 31 completed
+Person 24 of 31 completed
+Person 25 of 31 completed
+Person 26 of 31 completed
+Person 27 of 31 completed
+Person 28 of 31 completed
+Person 29 of 31 completed
+Person 30 of 31 completed
+Person 31 of 31 completed
+BoW 1 completed
+BoW 2 completed
+BoW 3 completed
+BoW 4 completed
+BoW 5 completed
+BoW 6 completed
+BoW 7 completed
+BoW 8 completed
+BoW 9 completed
+BoW 10 completed
+BoW 11 completed
+BoW 12 completed
+BoW 13 completed
+BoW 14 completed
+BoW 15 completed
+BoW 16 completed
+BoW 17 completed
+BoW 18 completed
+BoW 19 completed
+BoW 20 completed
+BoW 21 completed
+BoW 22 completed
+BoW 23 completed
+BoW 24 completed
+BoW 25 completed
+BoW 26 completed
+BoW 27 completed
+BoW 28 completed
+BoW 29 completed
+BoW 30 completed
+BoW 31 completed
+Training complete
+Testing
+Person 1 of 31 tested
+Person 2 of 31 tested
+Person 3 of 31 tested
+Person 4 of 31 tested
+Person 5 of 31 tested
+Person 6 of 31 tested
+Person 7 of 31 tested
+Person 8 of 31 tested
+Person 9 of 31 tested
+Person 10 of 31 tested
+Person 11 of 31 tested
+Person 12 of 31 tested
+Person 13 of 31 tested
+Person 14 of 31 tested
+Person 15 of 31 tested
+Person 16 of 31 tested
+Person 17 of 31 tested
+Person 18 of 31 tested
+Person 19 of 31 tested
+Person 20 of 31 tested
+Person 21 of 31 tested
+Person 22 of 31 tested
+Person 23 of 31 tested
+Person 24 of 31 tested
+Person 25 of 31 tested
+Person 26 of 31 tested
+Person 27 of 31 tested
+Person 28 of 31 tested
+Person 29 of 31 tested
+Person 30 of 31 tested
+Person 31 of 31 tested
+Recognition success ratio: 0.0135823
+6 completed;
+Averaged result = 0.01819
+K-Fold Cross Validation Complete
