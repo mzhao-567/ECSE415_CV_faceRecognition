@@ -1,11 +1,3 @@
-//
-//  main.cpp
-//  ECSE415-A2
-//
-//  Created by Zhao on 16/2/18.
-//  Copyright © 2016年 Zhao. All rights reserved.
-//
-
 #include <opencv2/opencv.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 #include <string>
@@ -13,320 +5,518 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <iostream>
+
+
 
 
 using namespace cv;
 using namespace std;
 
+void loadQMUL(vector<vector<vector<Mat>>> &QMULImages, String QMULAddress, vector<String> QMULNames,vector<String> QMULSubject,
+              vector<String> QMULTilt, vector<String> QMULPan);
+
+void loadHeadPose(vector<vector<vector<Mat>>> &headPoseImages, String headPoseAddress,vector<String>headPoseId,
+                  vector<String>headPoseTilt, vector<String>headPosePan, vector<vector<vector<Point>>> &headPoseAnnotation);
+
+Point readFilebyLine(String path);
 
 
-/* Helper class declaration and definition */
-class Caltech101
-{
-public:
-    Caltech101(string datasetPath, const int numTrainingImages, const int numTestImages)
-    {
-        cout << "Loading Caltech 101 dataset" << endl;
-        numImagesPerCategory = numTrainingImages + numTestImages;
-        
-        // load "Categories.txt"
-        ifstream infile(datasetPath + "/" + "Categories.txt");
-        cout << "\tChecking Categories.txt" << endl;
-        if (!infile.is_open())
-        {
-            cout << "\t\tError: Cannot find Categories.txt in " << datasetPath << endl;
-            return;
+
+//Fuctions include in LBP
+
+vector<Mat> LBPHist(vector<Mat> trainData, vector<int> labels);
+vector<Mat> DivideFour(vector<Mat> Images, vector<int> Labels, vector<int> &returnLabels);
+double LBPTest(vector<int> trainLabels, vector<Mat> trainImages, vector<int> testLabels, vector<Mat> testImages, int pyramidLevel);
+double LBPTestProbability(vector<int> trainLabels, vector<Mat> trainImages, vector<int> testLabels, vector<Mat> testImages, int pyramidLevel);
+vector<int> LBPConfusionMatrix(vector<int> trainLabels, vector<Mat> trainImages, vector<int> testLabels, vector<Mat> testImages, int pyramidLevel);
+
+
+
+
+
+int main(void) {
+    
+    
+    String QMULAddress = "/Users/Zhao/Desktop/415_Project/QMUL";
+    String headPosePath = "/Users/Zhao/Desktop/415_Project/HeadPoseImageDatabase";
+    
+    
+    vector<String> QMULNames;
+    
+    QMULNames = {"AdamBGrey", "AndreeaVGrey","CarlaBGrey","ColinPGrey","DanJGrey",
+    "DennisPGrey","DennisPNoGlassesGrey","DerekCGrey","GrahamWGrey","HeatherLGrey","JackGrey","JamieSGrey",
+    "JeffNGrey","JohnGrey","JonGrey","KateSGrey","KatherineWGrey","KeithCGrey","KrystynaNGrey","PaulVGrey",
+    "RichardBGrey","RichardHGrey","SarahLGrey","SeanGGrey","SeanGNoGlassesGrey","SimonBGrey","SueWGrey",
+    "TasosHGrey","TomKGrey","YogeshRGrey","YongminYGrey"};
+    
+    vector<String> QMULSubject;
+    
+    QMULSubject = {"AdamB", "AndreeaV","CarlaB","ColinP","DanJ",
+        "DennisP","DennisPNoGlasses","DerekC","GrahamW","HeatherL","Jack","JamieS",
+        "JeffNG","John","OngEJ","KateS","KatherineW","KeithC","KrystynaN","PaulV",
+        "RichardB","RichardH","SarahL","SeanG","SeanGNoGlasses","SimonB","SueW",
+        "TasosH","TomK","YogeshR","YongminY"};
+    
+    vector<String> QMULTilt;
+    
+    QMULTilt = {"060","070","080","090","100","110","120"};
+    
+    vector<String> QMULPan;
+    
+    QMULPan = {"000","010","020","030","040","050","060","070","080","090","100",
+        "110","120","130","140","150","160","170","180"};
+    
+    vector<vector<vector<Mat>>> QMULImages;
+    
+    loadQMUL(QMULImages, QMULAddress, QMULNames, QMULSubject, QMULTilt, QMULPan);
+    
+    vector<vector<vector<Mat>>> headPoseImages;
+    vector<vector<vector<Point>>> headPoseAnnotation;
+    
+    vector<String>headPoseId = {"01","02","03","04","05","06","07","08","09","10","11","12","13","14","15"};
+    vector<String>headPosePan = {"-90","-75","-60","-45","-30","-15","+0","+15","+30","+45","+60","+75","+90"};
+    vector<String>headPoseTilt ={"-30","-15","+0","+15","+30"};
+    
+    //loadHeadPose(headPoseImages, headPosePath, headPoseId, headPoseTilt, headPosePan,headPoseAnnotation);
+    
+    
+    vector<Mat> LBPTrain;
+    vector<int> LBPTrainLabel;
+    vector<Mat> LBPHistogram;
+    for(int i = 0; i < 7; i++){
+        for(int j = 0; j < 19; j++){
+            cvtColor(QMULImages[0][i][j], QMULImages[0][i][j], CV_BGR2GRAY);
+            LBPTrain.push_back(QMULImages[0][i][j]);
+            int label = 0;
+            LBPTrainLabel.push_back(label);
         }
-        cout << "\t\tOK!" << endl;
-        
-        // Parse category names
-        cout << "\tParsing category names" << endl;
-        string catname;
-        while (getline(infile, catname))
-        {
-            categoryNames.push_back(catname);
-        }
-        cout << "\t\tdone!" << endl;
-        
-        // set num categories
-        int numCategories = (int)categoryNames.size();
-        
-        // initialize outputs size
-        trainingImages = vector<vector<Mat>>(numCategories);
-        trainingAnnotations = vector<vector<Rect>>(numCategories);
-        testImages = vector<vector<Mat>>(numCategories);
-        testAnnotations = vector<vector<Rect>>(numCategories);
-        
-        // generate training and testing indices
-        randomShuffle();
-        
-        // Load data
-        cout << "\tLoading images and annotation files" << endl;
-        string imgDir = datasetPath + "/" + "Images";
-        string annotationDir = datasetPath + "/" + "Annotations";
-        for (int catIdx = 0; catIdx < categoryNames.size(); catIdx++)
-            //for (int catIdx = 0; catIdx < 1; catIdx++)
-        {
-            string imgCatDir = imgDir + "/" + categoryNames[catIdx];
-            string annotationCatDir = annotationDir + "/" + categoryNames[catIdx];
-            for (int fileIdx = 0; fileIdx < numImagesPerCategory; fileIdx++)
-            {
-                // use shuffled training and testing indices
-                int shuffledFileIdx = indices[fileIdx];
-                // generate file names
-                stringstream imgFilename, annotationFilename;
-                imgFilename << "image_" << setfill('0') << setw(4) << shuffledFileIdx << ".jpg";
-                annotationFilename << "annotation_" << setfill('0') << setw(4) << shuffledFileIdx << ".txt";
-                
-                // Load image
-                string imgAddress = imgCatDir + '/' + imgFilename.str();
-                //cout<<"imgAddress"<<imgAddress<<endl;
-                Mat img = imread(imgAddress, CV_LOAD_IMAGE_COLOR);
-                //imshow("hehe", img);
-                // check image data
-                if (!img.data)
-                {
-                    cout << "\t\tError loading image in " << imgAddress << endl;
-                    return;
-                }
-                
-                // Load annotation
-                string annotationAddress = annotationCatDir + '/' + annotationFilename.str();
-                ifstream annotationIFstream(annotationAddress);
-                // Checking annotation file
-                if (!annotationIFstream.is_open())
-                {
-                    cout << "\t\tError: Error loading annotation in " << annotationAddress << endl;
-                    return;
-                }
-                int tl_col, tl_row, width, height;
-                Rect annotRect;
-                while (annotationIFstream >> tl_col >> tl_row >> width >> height)
-                {
-                    annotRect = Rect(tl_col - 1, tl_row - 1, width, height);
-                }
-                
-                // Split training and testing data
-                if (fileIdx < numTrainingImages)
-                {
-                    // Training data
-                    trainingImages[catIdx].push_back(img);
-                    trainingAnnotations[catIdx].push_back(annotRect);
-                }
-                else
-                {
-                    // Testing data
-                    testImages[catIdx].push_back(img);
-                    testAnnotations[catIdx].push_back(annotRect);
-                }
-            }
-        }
-        cout << "\t\tdone!" << endl;
-        successfullyLoaded = true;
-        cout << "Dataset successfully loaded: " << numCategories << " categories, " << numImagesPerCategory  << " images per category" << endl << endl;
     }
     
-    bool isSuccessfullyLoaded()	{  return successfullyLoaded; }
-    
-    void dispTrainingImage(int categoryIdx, int imageIdx)
-    {
-        Mat image = trainingImages[categoryIdx][imageIdx];
-        Rect annotation = trainingAnnotations[categoryIdx][imageIdx];
-        rectangle(image, annotation, Scalar(255, 0, 255), 2);
-        imshow("Annotated training image", image);
-        waitKey(0);
-        destroyWindow("Annotated training image");
-    }
-    
-    void dispTestImage(int categoryIdx, int imageIdx)
-    {
-        Mat image = testImages[categoryIdx][imageIdx];
-        Rect annotation = testAnnotations[categoryIdx][imageIdx];
-        rectangle(image, annotation, Scalar(255, 0, 255), 2);
-        imshow("Annotated test image", image);
-        waitKey(0);
-        destroyWindow("Annotated test image");
-    }
-    
-    vector<string> categoryNames;
-    vector<vector<Mat>> trainingImages;
-    vector<vector<Rect>> trainingAnnotations;
-    vector<vector<Mat>> testImages;
-    vector<vector<Rect>> testAnnotations;
-    
-private:
-    bool successfullyLoaded = false;
-    int numImagesPerCategory;
-    vector<int> indices;
-    void randomShuffle()
-    {
-        // set init values
-        for (int i = 1; i <= numImagesPerCategory; i++) indices.push_back(i);
-        
-        // permute using built-in random generator
-        random_shuffle(indices.begin(), indices.end());
-    }
-};
-
-/* Function prototypes */
-void Train(const Caltech101 &Dataset, Mat &codeBook, vector<vector<Mat>> &imageDescriptors, const int numCodewords);
-void Test(const Caltech101 &Dataset, const Mat codeBook, const vector<vector<Mat>> imageDescriptors);
-
-int main(void)
-{
-    /* Initialize OpenCV nonfree module */
-    initModule_nonfree();
-    
-    /* Put the full path of the Caltech 101 folder here */
-    const string datasetPath = "/Users/Zhao/Desktop/Caltech101";
-    
-    /* Set the number of training and testing images per category */
-    const int numTrainingData = 40;
-    const int numTestingData = 2;
-    
-    /* Set the number of codewords*/
-    const int numCodewords = 10;
-    
-    /* Load the dataset by instantiating the helper class */
-    Caltech101 Dataset(datasetPath, numTrainingData, numTestingData);
-    
-
-    
-    /* Terminate if dataset is not successfull loaded */
-    if (!Dataset.isSuccessfullyLoaded())
-    {
-        cout << "An error occurred, press Enter to exit" << endl;
-        getchar();
-        return 0;
-    }	
-    
-    /* Variable definition */
-    Mat codeBook;	
-    vector<vector<Mat>> imageDescriptors;
-    
-    /* Training */	
-    Train(Dataset, codeBook, imageDescriptors, numCodewords);
+    //LBPTest is the first one, original LBP, section 2.2.1
+    //double rate = LBPTest(LBPTrainLabel, LBPTrain, LBPTrainLabel, LBPTrain, 1);
+    //cout << rate << endl;
+    vector<int> hehe = LBPConfusionMatrix(LBPTrainLabel, LBPTrain, LBPTrainLabel, LBPTrain, 1);
     
     
-    /* Testing */	
-    Test(Dataset, codeBook, imageDescriptors);
 }
 
-/* Train BoW */
-void Train(const Caltech101 &Dataset, Mat &codeBook, vector<vector<Mat>> &imageDescriptors, const int numCodewords)
-{
-    Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
-    Ptr<DescriptorExtractor> descriptor_extractor = DescriptorExtractor::create( "SIFT" );
-    Mat D;
-    //use build-in classes
-    //vector<KeyPoint> pointsSift;
-    for(int i = 0; i < 20; i++){
-        for(int j = 0; j < 40; j++){
-            vector<KeyPoint> kp_sift;
-            //Mat imgToShow;
-            Mat Descriptor;
-            detector->detect(Dataset.trainingImages[i][j], kp_sift);
-            //drawKeypoints(Dataset.trainingImages[i][j],kp_sift,imgToShow,Scalar::all(-1));
-            //cout << kp_sift.size() << endl;
-            for(int k = 0; k < kp_sift.size(); k++){ // discard key points
-                if(kp_sift[k].pt.x > Dataset.trainingAnnotations[i][j].x + Dataset.trainingAnnotations[i][j].height || kp_sift[k].pt.y > Dataset.trainingAnnotations[i][j].y + Dataset.trainingAnnotations[i][j].width){
-                    kp_sift.erase(kp_sift.begin() + k);
-                }
-            }
-            //rectangle(imgToShow,cvPoint(Dataset.trainingAnnotations[i][j].x, Dataset.trainingAnnotations[i][j].y),cvPoint(Dataset.trainingAnnotations[i][j].x + Dataset.trainingAnnotations[i][j].height,Dataset.trainingAnnotations[i][j].y + Dataset.trainingAnnotations[i][j].width),Scalar(255,0,0),2);
-            descriptor_extractor->compute(Dataset.trainingImages[i][j], kp_sift, Descriptor);
-            //resize(Descriptor, Descriptor2, Size(D.cols,Descriptor.rows));
-            D.push_back(Descriptor); //generate descriptors, later use it to generate the codebook.
-            //imshow("hehehe:",imgToShow);
-            //waitKey();
-        }
-    }
-    //cout << "hehe1" << endl;
 
+
+void loadQMUL(vector<vector<vector<Mat>>> &QMULImages, String QMULAddress, vector<String> QMULNames,vector<String> QMULSubject,
+              vector<String> QMULTilt, vector<String> QMULPan){
     
-    BOWKMeansTrainer bowTraining(numCodewords);//10 clusters count
-    bowTraining.add(D);
-    codeBook = bowTraining.cluster();//generate the codebook.
     
-    Ptr<DescriptorMatcher> descriptor_matcher = DescriptorMatcher::create( "BruteForce" );
-    BOWImgDescriptorExtractor bowDE(descriptor_extractor, descriptor_matcher);
-    bowDE.setVocabulary(codeBook);// try to find a bag of words histogram for each training images using the codebook.
-    vector<Mat> imgDescriptorsTemp;
-    for(int i = 0; i < 20; i++){
-        vector<Mat> imgDescriptorsTemp;
-        //Mat meanDescriptor;
-        for(int j = 0; j < 40; j++){
-            vector<KeyPoint> kp_sift;
-            Mat bowHistogram;
-            
-            detector->detect(Dataset.trainingImages[i][j], kp_sift);
-            for(int k = 0; k < kp_sift.size(); k++){
-                if(kp_sift[k].pt.x > Dataset.trainingAnnotations[i][j].x + Dataset.trainingAnnotations[i][j].height || kp_sift[k].pt.y > Dataset.trainingAnnotations[i][j].y + Dataset.trainingAnnotations[i][j].width){
-                    kp_sift.erase(kp_sift.begin() + k);
+    
+    for(int i = 0; i < QMULNames.size(); i++){
+        vector<vector<Mat>> ImageTemp2;
+        
+            for (int k = 0; k < QMULTilt.size(); k++){
+                vector<Mat> ImageTemp1;
+                for (int l = 0; l < QMULPan.size(); l++){
+                    String pathTemp = QMULSubject[i] + "_" + QMULTilt[k] + "_" + QMULPan[l] + ".ras";
+                    Mat temp = imread(QMULAddress + "/" + QMULNames[i] + "/" + pathTemp);
+                    ImageTemp1.push_back(temp);
+
                 }
+                ImageTemp2.push_back(ImageTemp1);
             }
-            bowDE.compute2(Dataset.trainingImages[i][j], kp_sift, bowHistogram);
-            //meanDescriptor.push_back(bowHistogram);
-            imgDescriptorsTemp.push_back(bowHistogram);
-        }
-        //cout << mean(imgDescriptorsTemp) << endl;
-        //Scalar catMean = mean(imgDescriptorsTemp);
-        //cout << mean(meanDescriptor) << endl;
-        imageDescriptors.push_back(imgDescriptorsTemp);
+        
+        QMULImages.push_back(ImageTemp2);
     }
-    //cout << "hehe4" << endl;
+    
 }
 
-/* Test BoW */
-void Test(const Caltech101 &Dataset, const Mat codeBook, const vector<vector<Mat>> imageDescriptors)
-{
-    Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
-    Ptr<DescriptorExtractor> descriptor_extractor = DescriptorExtractor::create( "SIFT" );
-    Ptr<DescriptorMatcher> descriptor_matcher = DescriptorMatcher::create( "BruteForce" );
-    BOWImgDescriptorExtractor bowDE(descriptor_extractor, descriptor_matcher);
-    bowDE.setVocabulary(codeBook);
-    String testLabelTemp;
-    int correctDectCounter = 0;
-    double numImg = 0.0;
-    for(int i = 0; i < 20; i++){
-        for(int j = 0; j < 2; j++){
-            vector<KeyPoint> kp_sift;
+void loadHeadPose(vector<vector<vector<Mat>>> &headPoseImages, String headPosePath,vector<String>headPoseId,
+             vector<String>headPoseTilt, vector<String>headPosePan, vector<vector<vector<Point>>> &headPoseAnnotation){
+    
+    
+    vector<String> series;
+    
+    for(int i = 114; i <=178; i++){
+        String temp = to_string(i);
+        series.push_back(temp);
+    }
+    
+    int j = 0;
+    for(int i = 0; i < headPoseId.size(); i++){
+        
+        vector<vector<Mat>> ImageTemp2;
+        vector<vector<Point>> AnnotationTemp2;
+            for(int k = 0; k < headPoseTilt.size(); k++){
+                vector<Mat> ImageTemp1;
+                vector<Point> AnnotationTemp1;
+                
+                for(int l = 0; l < headPosePan.size(); l++){
+                    String path1 = headPosePath + "/" + "Person" + headPoseId[i] + "/" + "person" + headPoseId[i] +
+                    series[j] + headPoseTilt[k] + headPosePan[l]+ ".jpg";
+                    String path2 = headPosePath + "/" + "Person" + headPoseId[i] + "/" + "person" + headPoseId[i] +
+                    series[j] + headPoseTilt[k] + headPosePan[l]+ ".txt";
+                    Mat temp = imread(path1);
+                    Point tempPoint = readFilebyLine(path2);
+                    ImageTemp1.push_back(temp);
+                    AnnotationTemp1.push_back(tempPoint);
+                    j++;
+                }
+                ImageTemp2.push_back(ImageTemp1);
+                AnnotationTemp2.push_back(AnnotationTemp1);
+            }
+        
+        headPoseImages.push_back(ImageTemp2);
+        headPoseAnnotation.push_back(AnnotationTemp2);
+        j = 0;
+    }
+}
+
+Point readFilebyLine(String path){
+    ifstream infile(path);
+    ifstream infile1(path);
+    String x,y;
+    for(int i = 0; i < 4; i++){
+        getline(infile,x);
+    }
+    for(int i = 0; i < 5; i++){
+        getline(infile1,y);
+    }
+    int xCoord = atoi(x.c_str());
+    int yCoord = atoi(y.c_str());
+    Point toReturn;
+    toReturn.x = xCoord;
+    toReturn.y = yCoord;
+    return toReturn;
+
+}
+
+vector<Mat> LBPHist(vector<Mat> trainData, vector<int> labels){
+    Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+    model->train(trainData, labels);
+    vector<Mat> LBPHistogram = model->getMatVector("histograms");
+    return LBPHistogram;
+    //model->set("threshold", 0.0);
+    //Mat testSample = trainData[1];
+    //int predictedLabel = model->predict(testSample);
+    //cout << predictedLabel << endl;
+}
+
+
+double LBPTest(vector<int> trainLabels, vector<Mat> trainImages, vector<int> testLabels, vector<Mat> testImages, int pyramidLevel){
+    
+    vector<Mat> trainHist;
+    vector<Mat> testHist;
+    
+    vector<int> dividedTrainLabels;
+    vector<int> dividedTestLabels;
+    
+    vector<Mat> dividedTrainImages;
+    vector<Mat> dividedTestImages;
+    
+    if(pyramidLevel == 0){
+        trainHist = LBPHist(trainImages,trainLabels);
+        testHist = LBPHist(testImages, testLabels);
+        //in this case we do not need to use the divided labels, we can use the passed in test and train labels.
+    }
+    
+    if(pyramidLevel == 1){
+        dividedTrainImages = DivideFour(trainImages, trainLabels, dividedTrainLabels);
+        dividedTestImages = DivideFour(testImages, testLabels, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    if(pyramidLevel == 2){
+        
+        vector<int> labelTrain1;
+        vector<int> labelTest1;
+        
+        vector<Mat> trainHist1 = DivideFour(trainImages, trainLabels, labelTrain1);
+        vector<Mat> testHist1 = DivideFour(testImages, testLabels, labelTest1);
+        dividedTrainImages = DivideFour(trainHist1, labelTrain1, dividedTrainLabels);
+        dividedTestImages = DivideFour(testHist1, labelTest1, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    if(pyramidLevel == 3){
+        
+        vector<int> labelTrain1;
+        vector<int> labelTrain2;
+        vector<int> labelTest1;
+        vector<int> labelTest2;
+        
+        vector<Mat> trainHist1 = DivideFour(trainImages, trainLabels, labelTrain1);
+        vector<Mat> testHist1 = DivideFour(testImages, testLabels, labelTest1);
+        vector<Mat> trainHist2 = DivideFour(trainHist1, labelTrain1, labelTrain2);
+        vector<Mat> testHist2 = DivideFour(testHist1, labelTest1, labelTest2);
+        dividedTrainImages = DivideFour(trainHist2, labelTrain2, dividedTrainLabels);
+        dividedTestImages = DivideFour(testHist2, labelTest2, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    double numCorrectCase = 0;
+    double totalNumImages = 0;
+    double distance = 100;
+    int MatchingIndex = 0;
+    
+    
+    //Compare for the result.
+    
+    for(int i = 0; i < trainHist.size(); i++){
+        for(int j = 0; j < testHist.size(); j++){
+            double currentDistance = compareHist(trainHist[i], testHist[j], CV_COMP_CHISQR);
+            if(currentDistance < distance){
+                distance = currentDistance;
+                MatchingIndex = i;
+            }
+            if(pyramidLevel == 0){
+                if(trainLabels[MatchingIndex] == testLabels[j]){
+                    numCorrectCase++;
+                }
+                totalNumImages++;
+            }
             
-            Mat bowHistogram;
-            detector->detect(Dataset.testImages[i][j], kp_sift);
-            for(int k = 0; k < kp_sift.size(); k++){
-                if(kp_sift[k].pt.x > Dataset.testAnnotations[i][j].x + Dataset.testAnnotations[i][j].height || kp_sift[k].pt.y > Dataset.testAnnotations[i][j].y + Dataset.testAnnotations[i][j].width){
-                    kp_sift.erase(kp_sift.begin() + k);
+            if(pyramidLevel > 0){
+                if(dividedTrainLabels[MatchingIndex] == dividedTestLabels[j]){
+                    numCorrectCase++;
                 }
+                totalNumImages++;
             }
-            //generate bag of word histogram for test images. With 2 images per category with 20 category. BogHistogram is generated
-            //the same way as in the training function.
-            bowDE.compute2(Dataset.testImages[i][j], kp_sift, bowHistogram);
-            double minDistance = 100;
-            double currentDistance = 101;
-            int catIndex = 100;
-            // Compare the histogram for each test image with each training image. Pick the category label for the closest match.
-            for(int l = 0; l < 20; l++){
-                for (int m = 0; m < 40; m++){
-                    currentDistance = norm(bowHistogram, imageDescriptors[l][m]);
-                    if(currentDistance < minDistance){
-                        minDistance = currentDistance;
-                        catIndex = l;
-                    }
+        
+        }
+    }
+    
+    
+    double correctRate = numCorrectCase / totalNumImages;
+    return correctRate;
+    
+}
+
+
+
+ vector<Mat> DivideFour(vector<Mat> Images, vector<int> Labels, vector<int> &returnLabels){
+     //returnLabels should be passes as an empty vector<int> which stores the label for images after dividing into 4.
+     vector<Mat> dividedSet;
+     
+     Rect rectLeftUp, rectRightUp, rectLeftDown, rectRightDown;
+     
+     rectLeftUp = Rect(0,0,Images[0].cols /2, Images[0].rows / 2);
+     rectRightUp = Rect(Images[0].cols / 2, 0, Images[0].cols / 2, Images[0].rows / 2);
+     rectLeftDown = Rect(0, Images[0].rows/2, Images[0].cols / 2, Images[0].rows / 2);
+     rectRightDown = Rect(Images[0].cols/2, Images[0].rows / 2, Images[0].cols/2, Images[0].rows/2);
+     
+     
+     for(int i = 0; i < Images.size(); i++){
+         //Mat leftUp, rightUp, leftDown, rightDown;
+         
+         Mat leftUp = Mat(Images[i], rectLeftUp).clone();
+         Mat rightUp = Mat(Images[i], rectRightUp).clone();
+         Mat leftDown = Mat(Images[i], rectLeftDown).clone();
+         Mat rightDown = Mat(Images[i], rectRightDown).clone();
+         
+         dividedSet.push_back(leftUp);
+         dividedSet.push_back(rightUp);
+         dividedSet.push_back(leftDown);
+         dividedSet.push_back(rightDown);
+         
+         returnLabels.push_back(Labels[i]);
+         returnLabels.push_back(Labels[i]);
+         returnLabels.push_back(Labels[i]);
+         returnLabels.push_back(Labels[i]);
+         
+         
+     }
+     return dividedSet;
+}
+
+
+
+double LBPTestProbability(vector<int> trainLabels, vector<Mat> trainImages, vector<int> testLabels, vector<Mat> testImages, int pyramidLevel){
+    
+    vector<Mat> trainHist;
+    vector<Mat> testHist;
+    
+    vector<int> dividedTrainLabels;
+    vector<int> dividedTestLabels;
+    
+    vector<Mat> dividedTrainImages;
+    vector<Mat> dividedTestImages;
+    
+    if(pyramidLevel == 0){
+        trainHist = LBPHist(trainImages,trainLabels);
+        testHist = LBPHist(testImages, testLabels);
+        //in this case we do not need to use the divided labels, we can use the passed in test and train labels.
+    }
+    
+    if(pyramidLevel == 1){
+        dividedTrainImages = DivideFour(trainImages, trainLabels, dividedTrainLabels);
+        dividedTestImages = DivideFour(testImages, testLabels, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    if(pyramidLevel == 2){
+        
+        vector<int> labelTrain1;
+        vector<int> labelTest1;
+        
+        vector<Mat> trainHist1 = DivideFour(trainImages, trainLabels, labelTrain1);
+        vector<Mat> testHist1 = DivideFour(testImages, testLabels, labelTest1);
+        dividedTrainImages = DivideFour(trainHist1, labelTrain1, dividedTrainLabels);
+        dividedTestImages = DivideFour(testHist1, labelTest1, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    if(pyramidLevel == 3){
+        
+        vector<int> labelTrain1;
+        vector<int> labelTrain2;
+        vector<int> labelTest1;
+        vector<int> labelTest2;
+        
+        vector<Mat> trainHist1 = DivideFour(trainImages, trainLabels, labelTrain1);
+        vector<Mat> testHist1 = DivideFour(testImages, testLabels, labelTest1);
+        vector<Mat> trainHist2 = DivideFour(trainHist1, labelTrain1, labelTrain2);
+        vector<Mat> testHist2 = DivideFour(testHist1, labelTest1, labelTest2);
+        dividedTrainImages = DivideFour(trainHist2, labelTrain2, dividedTrainLabels);
+        dividedTestImages = DivideFour(testHist2, labelTest2, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    double numCorrectCase = 0;
+    double totalNumImages = 0;
+    //double distance = 100;
+    int MatchingIndex = 0;
+    
+    int numClusters = 1;
+    EM em_model = EM(numClusters, EM::COV_MAT_DIAGONAL, TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, EM::DEFAULT_MAX_ITERS, FLT_EPSILON));
+    
+    //Compare for the result.
+    
+    for(int i = 0; i < trainHist.size(); i++){
+        for(int j = 0; j < testHist.size(); j++){
+            /*double currentDistance = compareHist(trainHist[i], testHist[j], CV_COMP_CHISQR);
+            if(currentDistance < distance){
+                distance = currentDistance;
+                MatchingIndex = i;
+            }*/
+            
+            
+            
+            
+            if(pyramidLevel == 0){
+                if(trainLabels[MatchingIndex] == testLabels[j]){
+                    numCorrectCase++;
                 }
+                totalNumImages++;
             }
-            testLabelTemp = Dataset.categoryNames[catIndex];
-            if (testLabelTemp == Dataset.categoryNames[i]) {
-                correctDectCounter++;
+            
+            if(pyramidLevel > 0){
+                if(dividedTrainLabels[MatchingIndex] == dividedTestLabels[j]){
+                    numCorrectCase++;
+                }
+                totalNumImages++;
             }
-            numImg++;
-            //double distance = norm(bowHistogram,imageDescriptors[i]);
             
         }
     }
-    double recongRatio = correctDectCounter / numImg;
-    cout << recongRatio << endl;
+    
+    
+    double correctRate = numCorrectCase / totalNumImages;
+    return correctRate;
+    
 }
+
+
+
+vector<int> LBPConfusionMatrix(vector<int> trainLabels, vector<Mat> trainImages, vector<int> testLabels, vector<Mat> testImages, int pyramidLevel){
+    
+    vector<Mat> trainHist;
+    vector<Mat> testHist;
+    
+    vector<int> dividedTrainLabels;
+    vector<int> dividedTestLabels;
+    
+    vector<Mat> dividedTrainImages;
+    vector<Mat> dividedTestImages;
+    
+    if(pyramidLevel == 0){
+        trainHist = LBPHist(trainImages,trainLabels);
+        testHist = LBPHist(testImages, testLabels);
+        //in this case we do not need to use the divided labels, we can use the passed in test and train labels.
+    }
+    
+    if(pyramidLevel == 1){
+        dividedTrainImages = DivideFour(trainImages, trainLabels, dividedTrainLabels);
+        dividedTestImages = DivideFour(testImages, testLabels, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    if(pyramidLevel == 2){
+        
+        vector<int> labelTrain1;
+        vector<int> labelTest1;
+        
+        vector<Mat> trainHist1 = DivideFour(trainImages, trainLabels, labelTrain1);
+        vector<Mat> testHist1 = DivideFour(testImages, testLabels, labelTest1);
+        dividedTrainImages = DivideFour(trainHist1, labelTrain1, dividedTrainLabels);
+        dividedTestImages = DivideFour(testHist1, labelTest1, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    if(pyramidLevel == 3){
+        
+        vector<int> labelTrain1;
+        vector<int> labelTrain2;
+        vector<int> labelTest1;
+        vector<int> labelTest2;
+        
+        vector<Mat> trainHist1 = DivideFour(trainImages, trainLabels, labelTrain1);
+        vector<Mat> testHist1 = DivideFour(testImages, testLabels, labelTest1);
+        vector<Mat> trainHist2 = DivideFour(trainHist1, labelTrain1, labelTrain2);
+        vector<Mat> testHist2 = DivideFour(testHist1, labelTest1, labelTest2);
+        dividedTrainImages = DivideFour(trainHist2, labelTrain2, dividedTrainLabels);
+        dividedTestImages = DivideFour(testHist2, labelTest2, dividedTestLabels);
+        trainHist = LBPHist(dividedTrainImages, dividedTrainLabels);
+        testHist = LBPHist(dividedTestImages, dividedTestLabels);
+    }
+    
+    double distance = 100;
+    int MatchingIndex = 0;
+    vector<int> matchingClass;
+    
+
+    
+    for(int i = 0; i < trainHist.size(); i++){
+        for(int j = 0; j < testHist.size(); j++){
+            double currentDistance = compareHist(trainHist[i], testHist[j], CV_COMP_CHISQR);
+            if(currentDistance < distance){
+                distance = currentDistance;
+                MatchingIndex = i;
+            }
+            if(pyramidLevel == 0){
+                if(trainLabels[MatchingIndex] == testLabels[j]){
+                    matchingClass.push_back(MatchingIndex);
+                }
+            }
+            
+            if(pyramidLevel > 0){
+                if(dividedTrainLabels[MatchingIndex] == dividedTestLabels[j]){
+                    matchingClass.push_back(MatchingIndex);
+                }
+            }
+            
+        }
+    }
+    
+    return matchingClass;
+
+}
+
+
 
 
 
