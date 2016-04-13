@@ -96,8 +96,9 @@ int main(void) {
     //LBPTest is the first one, original LBP, section 2.2.1
     //double rate = LBPTest(LBPTrainLabel, LBPTrain, LBPTrainLabel, LBPTrain, 1);
     //cout << rate << endl;
-    vector<int> hehe = LBPConfusionMatrix(LBPTrainLabel, LBPTrain, LBPTrainLabel, LBPTrain, 1);
-    
+    //vector<int> hehe = LBPConfusionMatrix(LBPTrainLabel, LBPTrain, LBPTrainLabel, LBPTrain, 1);
+    double hehe = LBPTestProbability(LBPTrainLabel, LBPTrain, LBPTrainLabel, LBPTrain, 0);
+    cout << hehe << endl;
     
 }
 
@@ -384,43 +385,64 @@ double LBPTestProbability(vector<int> trainLabels, vector<Mat> trainImages, vect
         testHist = LBPHist(dividedTestImages, dividedTestLabels);
     }
     
+    
+    /* Use calcCovarMatrix to calcuate the mean and the covariance Matrix, and use it to construct the single Gaussian. */
+    
     double numCorrectCase = 0;
     double totalNumImages = 0;
     //double distance = 100;
     int MatchingIndex = 0;
     
-    int numClusters = 1;
-    EM em_model = EM(numClusters, EM::COV_MAT_DIAGONAL, TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, EM::DEFAULT_MAX_ITERS, FLT_EPSILON));
+    //int numClusters = 1;
     
+    Mat allHistogramHconcat = trainHist[0];
     //Compare for the result.
     
-    for(int i = 0; i < trainHist.size(); i++){
-        for(int j = 0; j < testHist.size(); j++){
-            /*double currentDistance = compareHist(trainHist[i], testHist[j], CV_COMP_CHISQR);
-            if(currentDistance < distance){
-                distance = currentDistance;
-                MatchingIndex = i;
-            }*/
+    //EM em_model(numClusters, EM::COV_MAT_DIAGONAL);
+    //for(int i = 1; i < trainHist.size(); i++){
+      //  vconcat(allHistogramHconcat, trainHist[i], allHistogramHconcat);
+    //}
+    
+   // Mat meanAllHist;
+    //Mat covAllHist;
+    
+   // calcCovarMatrix(allHistogramHconcat, covAllHist, meanAllHist, CV_COVAR_NORMAL | CV_COVAR_ROWS);
+    
+    //Mat weightMatrix(1, numClusters, CV_32F);
+    
+    //Mat logLikelihoodsMatrix, labelMatrix, probabilityMatrix;
+    
+    
+    //em_model.trainE(allHistogramHconcat, meanAllHist, vector<Mat>(1, covAllHist), weightMatrix,logLikelihoodsMatrix, labelMatrix, probabilityMatrix);
+
+   
+    
+    Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+    model->train(trainImages, trainLabels);
+
+    //for(int i = 0; i < trainHist.size(); i++){
+        
+        for(int j = 0; j < testImages.size(); j++){
             
+            int predictedLabel = model->predict(testImages[j]);
+            MatchingIndex = predictedLabel;
             
-            
-            
-            if(pyramidLevel == 0){
+            //if(pyramidLevel == 0){
                 if(trainLabels[MatchingIndex] == testLabels[j]){
                     numCorrectCase++;
                 }
                 totalNumImages++;
-            }
+            //}
             
-            if(pyramidLevel > 0){
+            /*if(pyramidLevel > 0){
                 if(dividedTrainLabels[MatchingIndex] == dividedTestLabels[j]){
                     numCorrectCase++;
                 }
                 totalNumImages++;
-            }
+            }*/
             
         }
-    }
+    //}
     
     
     double correctRate = numCorrectCase / totalNumImages;
