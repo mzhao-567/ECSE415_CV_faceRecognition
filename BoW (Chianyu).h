@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <algorithm>
 #include <iostream>
-#include <math.h>
 
 using namespace cv;
 using namespace std;
@@ -18,14 +17,13 @@ void loadHeadPose(vector<vector<vector<Mat>>> &headPoseImages, String headPoseAd
 Point readFilebyLine(String path);
 
 void kFold(const vector<vector<vector<Mat>>> &QMULImages);
-int probabilistic(vector<Mat> &histomat, Mat histogram, const int numCodewords);
+void probabilistic(vector<vector<Mat>> &imageDescriptors, const int numCodewords);
 void Train(const vector<vector<Mat>> &trainingData, Mat &codeBook, vector<vector<Mat>> &imageDescriptors, const int numCodewords);
-double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<vector<Mat>> imageDescriptors);
+double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, const vector<vector<Mat>> imageDescriptors);
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex);
 
 // Initialize constants
-const int numCodewords = 20;
-const bool probabilisticAnalysis = true;
+const int numCodewords = 50;
 const String QMULAddress = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/QMUL/";
 const String headPosePath = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/HeadPoseImageDatabase/";
 
@@ -56,7 +54,7 @@ void main() {
 		"100", "110", "120", "130", "140", "150", "160", "170", "180" };
 
 	vector<vector<vector<Mat>>> QMULImages;
-	// loadQMUL(QMULImages, QMULAddress, QMULNames, QMULSubject, QMULTilt, QMULPan);
+	loadQMUL(QMULImages, QMULAddress, QMULNames, QMULSubject, QMULTilt, QMULPan);
 
 	vector<vector<vector<Mat>>> headPoseImages;
 	vector<vector<vector<Point>>> headPoseAnnotation;
@@ -65,12 +63,11 @@ void main() {
 	vector<String>headPosePan = { "-90", "-75", "-60", "-45", "-30", "-15", "+0", "+15", "+30", "+45", "+60", "+75", "+90" };
 	vector<String>headPoseTilt = { "-30", "-15", "+0", "+15", "+30" };
 
-	loadHeadPose(headPoseImages, headPosePath, headPoseId, headPoseTilt, headPosePan, headPoseAnnotation);
+	//loadHeadPose(headPoseImages, headPosePath, headPoseId, headPoseTilt, headPosePan, headPoseAnnotation);
 
-	/***********FACE RECOGNITION***********/
+	/***********Bags of Words***********/
+
 	kFold(QMULImages);
-	/***********FACE RECOGNITION***********/
-	// poseEstimate(QMULImages, headPoseImages, headPoseAnnotation);
 
 	cin.ignore();
 }
@@ -202,8 +199,9 @@ void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
 	for (int k = 0; k < 7; k++) {
 		Mat codeBook;
 		vector<vector<Mat>> imageDescriptors;
-		Mat histogram;
+
 		Train(trainingData[k], codeBook, imageDescriptors, numCodewords);
+		// probabilistic(imageDescriptors, numCodewords);
 		res = res + Test(testingData[k], codeBook, imageDescriptors);
 
 		cout << "fold " << (k + 1) << " completed;" << endl;
@@ -216,60 +214,36 @@ void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
 	cout << "K-Fold Cross Validation Complete" << endl;
 }
 
-void poseEstimate(const vector<vector<vector<Mat>>> &QMULImages, const vector<vector<vector<Mat>>> &headPoseImages, const vector<vector<vector<Point>>> &annotation) {
-	vector<vector<Mat>> trainingData;
-	vector<vector<Mat>> testingData;
+void probabilistic(vector<vector<Mat>> &imageDescriptors, const int numCodewords) {
+	cout << "Probabilistic initiated" << endl;
+	cout << imageDescriptors.size() << " histogram sets with " << imageDescriptors[0].size() << " histograms per set" << endl;
 
-	// for each person
-	for (int i = 0; i < QMULImages.size(); i++) {
-		vector<Mat> tr_pics, te_pics;
-
-		// for each tilt angle
-		for (int j = 0; j < QMULImages[i].size(); j++) {
-
-			// for each pan angle
-			for (int k = 0; k < QMULImages[i][j].size(); k++) {
-
-				Mat img = QMULImages[i][j][k];
-				
-				
-
-			}
-		}
-	}
-}
-
-int probabilistic(vector<Mat> &histomat, Mat histogram, const int numCodewords) {
-
-	double minGaussian = -INFINITY;
-	int bestMatch = -1;
+	vector<vector<vector<Mat>>> gaussian;
 
 	// for each set
-	for (int i = 0; i < histomat.size(); i++) {
-		
-		Mat means(numCodewords, 1, CV_64FC1);
-		Mat covar(numCodewords, numCodewords, CV_64FC1);
-		
-		calcCovarMatrix(histomat[i], covar, means, CV_COVAR_NORMAL | CV_COVAR_ROWS, CV_64F);
-	
-		// Omit non-diagonal elements to ensure we have an inverse covar
-		Mat identity = Mat::eye(numCodewords, numCodewords, CV_64FC1);
-		covar = covar.mul(identity);
+	for (int i = 0; i < imageDescriptors.size(); i++) {
+		Mat histogram_mat;
 
-		Mat invCo = covar.inv();
-		histogram.convertTo(histogram, CV_64FC1);
-
-		// Compute the Gaussian probability
-		double expone = (-0.5) * sum((histogram - means) * invCo * (histogram - means).t())[0];
-		double determ = pow(2 * 3.1415926536, (0.5*numCodewords)) * pow(determinant(covar), 0.5);
-		double result = exp(expone);
-
-		if (result > minGaussian) {
-			minGaussian = result;
-			bestMatch = i;			
+		// for each histogram
+		for (int j = 0; j < imageDescriptors[i].size(); j++) {
+			Mat histogram = imageDescriptors[i][j];		
+			histogram_mat.push_back(histogram.row(j));
 		}
+
+		Mat means(1, numCodewords, CV_64FC1);
+		Mat covar(numCodewords, numCodewords, CV_64FC1);
+
+		cout << "test" << endl;
+		calcCovarMatrix(histogram_mat, covar, means, CV_COVAR_NORMAL | CV_COVAR_ROWS, CV_64F);
+		cout << "test" << endl;
+		//Mat invCo = covar.inv();
+		// cout << "det = " << determinant(covar) << endl;
+		cout << "means of size " << means.size() << " = \n" << means << endl;
+		cout << "covar of size " << covar.size() << " = \n" << covar << endl;
+
 	}
-	return bestMatch;
+
+	cout << "Probabilistic complete" << endl;
 }
 
 void Train(const vector<vector<Mat>> &trainingData, Mat &codeBook, vector<vector<Mat>> &imageDescriptors, const int numCodewords) {
@@ -341,7 +315,7 @@ void Train(const vector<vector<Mat>> &trainingData, Mat &codeBook, vector<vector
 	cout << "Training complete" << endl;
 }
 
-double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<vector<Mat>> imageDescriptors) {
+double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, const vector<vector<Mat>> imageDescriptors) {
 
 	Ptr<FeatureDetector> featureDetector = FeatureDetector::create("SIFT");
 	Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
@@ -354,19 +328,8 @@ double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<v
 
 	cout << "Testing" << endl;
 
-	// Reformate imageDescriptor for Gaussian probabilitics analysis
-	vector<Mat> histomat;
-	for (int i = 0; i < imageDescriptors.size(); i++) {
-		Mat histomat2d;
-		for (int j = 0; j < imageDescriptors[i].size(); j++) {
-			histomat2d.push_back(imageDescriptors[i][j]);
-		}
-		histomat.push_back(histomat2d);
-	}
-
 	// for each person
 	for (int i = 0; i < testingData.size(); i++) {
-		int bestMatch = -1;
 
 		// for each tilt image
 		for (int j = 0; j < testingData[i].size(); j++) {
@@ -381,42 +344,33 @@ double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<v
 			// Normalize BoW histogram
 			normalize(histogram, histogram, 0, 1, NORM_MINMAX, -1, Mat());
 
-			// Probabilitics
-			if (probabilisticAnalysis) { 
-				bestMatch = probabilistic(histomat, histogram, numCodewords);
+			double minDist = INFINITY;
+			int bestMatch = -1;
 
-				if (bestMatch == i) {
-					matches++;
-				}
-			} 
+			// for each person descriptor
+			for (int l = 0; l < imageDescriptors.size(); l++) {
 
-			//	Chi-square distance
-			else {
-				double minDist = INFINITY;
-				int bestMatch = -1;
+				// for each tilt angle descriptor
+				for (int m = 0; m < imageDescriptors[l].size(); m++) {
 
-				// for each person descriptor
-				for (int l = 0; l < imageDescriptors.size(); l++) {
+					Mat h1 = imageDescriptors[l][m];
+					Mat h2 = histogram;
 
-					// for each tilt angle descriptor
-					for (int m = 0; m < imageDescriptors[l].size(); m++) {
+					Mat h3 = (h1 - h2).mul(h1 - h2);
+					Mat h4 = (h1 + h2);
+					Mat chi_mat = h3.mul(1 / h4);
+					double chi = cv::sum(chi_mat)[0];
 
-						Mat h1 = imageDescriptors[l][m];
-						Mat h2 = histogram;
-						Mat h3 = (h1 - h2).mul(h1 - h2);
-						Mat h4 = (h1 + h2);
-						Mat chi_mat = h3.mul(1 / h4);
-						double chi = cv::sum(chi_mat)[0];
-
-						if (chi < minDist) {
-							minDist = chi;
-							bestMatch = l;
-						}
+					if (chi < minDist) {
+						minDist = chi;
+						bestMatch = l;
 					}
 				}
-				if (bestMatch == i) {
-					matches++;
-				}
+			}
+
+			if (bestMatch == i) {
+				matches++;
+				// cout << matches << " match(es) found" << endl;
 			}
 		}
 
