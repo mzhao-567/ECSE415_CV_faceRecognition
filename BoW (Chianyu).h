@@ -18,13 +18,14 @@ void loadHeadPose(vector<vector<vector<Mat>>> &headPoseImages, String headPoseAd
 Point readFilebyLine(String path);
 
 void kFold(const vector<vector<vector<Mat>>> &QMULImages);
+void poseEstimate(const vector<vector<vector<Mat>>> &QMULImages, const vector<vector<vector<Mat>>> &headPoseImages, const vector<vector<vector<Point>>> &annotation);
 int probabilistic(vector<Mat> &histomat, Mat histogram, const int numCodewords);
 void Train(const vector<vector<Mat>> &trainingData, Mat &codeBook, vector<vector<Mat>> &imageDescriptors, const int numCodewords);
 double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<vector<Mat>> imageDescriptors);
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex);
 
 // Initialize constants
-const int numCodewords = 20;
+const int numCodewords = 100;
 const bool probabilisticAnalysis = false;
 const String QMULAddress = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/QMUL/";
 const String headPosePath = "C:/Users/Chianyu/OneDrive/MARVIN/ECSE 415/Project/HeadPoseImageDatabase/";
@@ -69,7 +70,7 @@ void main() {
 
 	/***********FACE RECOGNITION***********/
 	kFold(QMULImages);
-	/***********FACE RECOGNITION***********/
+	/***********POSE RECOGNITION***********/
 	// poseEstimate(QMULImages, headPoseImages, headPoseAnnotation);
 
 	cin.ignore();
@@ -163,7 +164,7 @@ void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
 		vector<vector<Mat>> tr_person, te_person;
 
 		// for each person
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < QMULImages.size(); i++) {
 			vector<Mat> tr_pics, te_pics;
 			
 			// for each tilt angle
@@ -217,44 +218,74 @@ void kFold(const vector<vector<vector<Mat>>> &QMULImages) {
 }
 
 void poseEstimate(const vector<vector<vector<Mat>>> &QMULImages, const vector<vector<vector<Mat>>> &headPoseImages, const vector<vector<vector<Point>>> &annotation) {
+	cout << "Pose estimation" << endl;
+
 	vector<vector<Mat>> trainingData;
 	vector<vector<Mat>> testingData;
-	vector<Mat> te_pics;
 
 	// for each person
-	for (int i = 0; i < QMULImages.size(); i++) {
-		vector<Mat> tr_pics;
 
-		// for each tilt angle
-		for (int j = 0; j < QMULImages[i].size(); j++) {
+		
+	// for each tilt angle
+	for (int j = 0; j < QMULImages[0].size(); j++) {
+		vector<vector<Mat>> tr_tilt;
+		
+		// for each pan angle
+		for (int k = 0; k < QMULImages[0][0].size(); k++) {
+			vector<Mat> tr_pan;
+			for (int i = 0; i < QMULImages.size(); i++) {
 
-			// for each pan angle
-			for (int k = 0; k < QMULImages[i][j].size(); k++) {
+				if (j % 2 == 0 || k % 3 == 0) {
+					tr_pan.push_back(QMULImages[i][j][k]);
+				}
 
-				Mat img = QMULImages[i][j][k];				
-				tr_pics.push_back(img);
 			}
-		}
-		trainingData.push_back(tr_pics);
+
+			tr_tilt.push_back(tr_pan);
+		}	
 	}
+
+	cout << "trainingData loaded " << trainingData.size() << " x " << trainingData[0].size() << endl;
 
 	// for each person
 	for (int i = 0; i < headPoseImages.size(); i++) {
 		vector<Mat> te_pics;
-
 		// for each tilt angle
 		for (int j = 0; j < headPoseImages[i].size(); j++) {
-
 			// for each pan angle
 			for (int k = 0; k < headPoseImages[i][j].size(); k++) {
-
-				Mat img = headPoseImages[i][j][k];
-				te_pics.push_back(img);
+				Rect box;
+				
+				if (annotation[i][j][k].x - 50 > 0){ box.x = annotation[i][j][k].x - 50; } 
+				else { box.x = 0; }
+				
+				if (annotation[i][j][k].y - 50){ box.y = annotation[i][j][k].y - 50; } 
+				else { box.y = 0; }
+				
+				if (box.x + 100 < headPoseImages[i][j][k].cols){ box.width = 100; } 
+				else { box.width = headPoseImages[i][j][k].cols - box.x; }
+				
+				if (box.y + 100 < headPoseImages[i][j][k].rows){ box.height = 100; } 
+				else { box.height = headPoseImages[i][j][k].rows - box.y; }
+				
+				Mat crop = headPoseImages[i][j][k](box);
+				
+				te_pics.push_back(crop);
 			}
 		}
 		testingData.push_back(te_pics);
 	}
 
+	cout << "testingData loaded" << endl;
+
+	Mat confusion(21, 21, CV_64FC1, 0.0);
+	Size std_size(100, 100);
+
+	Mat codeBook;
+	vector<vector<Mat>> imageDescriptors;
+	Mat histogram;
+	Train(trainingData, codeBook, imageDescriptors, numCodewords);
+	Test(testingData, codeBook, imageDescriptors);
 
 }
 
@@ -362,6 +393,8 @@ void Train(const vector<vector<Mat>> &trainingData, Mat &codeBook, vector<vector
 
 double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<vector<Mat>> imageDescriptors) {
 
+	// Mat confusion(21, 21, CV_64FC1, 0.0);
+
 	Ptr<FeatureDetector> featureDetector = FeatureDetector::create("SIFT");
 	Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
 	Ptr<DescriptorMatcher>  descriptorMatcher = DescriptorMatcher::create("BruteForce");
@@ -406,7 +439,8 @@ double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<v
 
 				if (bestMatch == i) {
 					matches++;
-				}
+				}			
+				// confusion.at<double>(i, bestMatch) = confusion.at<double>(i, bestMatch) + 1;
 			} 
 
 			//	Chi-square distance
@@ -435,7 +469,12 @@ double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<v
 				}
 				if (bestMatch == i) {
 					matches++;
+					// cout << "h_Y = " << "\n " << histogram << endl;
 				}
+				else {
+					//cout << "h_N = " << "\n " << histogram << endl;
+				}
+				// confusion.at<double>(i, bestMatch) = confusion.at<double>(i, bestMatch) + 1;
 			}
 		}
 
@@ -449,8 +488,10 @@ double Test(const vector<vector<Mat>> &testingData, const Mat codeBook, vector<v
 	
 	// End of function
 	cout << "Testing complete" << endl;
-	
-	return ratio;	
+
+	// cout << "Confusion matrix =\n" << " " << confusion << endl;
+
+	return 0.0;	
 }
 
 void drawAnnotationRectangleWithKeypoints(const vector<vector<vector<Mat>>> &QMULImages, vector<KeyPoint> detectedKeypoints, int catIndex, int tiltIndex, int panIndex) {
